@@ -90,4 +90,4 @@ Note that the username will be the name of the blob storage container.
 
 ## Credit
  - Mohammed Habeeb for the original version of [C# FTP Server](http://www.codeguru.com/csharp/csharp/cs_internet/desktopapplications/article.php/c13163/Simple-FTP-Demo-Application-Using-CNET-20.htm)
- - [FTP2Azure codeplex team](http://ftp2azure.codeplex.com/team/view)
+ - [FTP2Azure codeplex team](http://ftp2azure.codeplex.com/team/view), for the previous versions.
