@@ -6,8 +6,10 @@ FTP for Azure worker. Stores FTP files on the blob store. Works with .NET 4.5+
 ## Quickguide
 
 ### Requires:
+```
   Microsoft.WindowsAzure.ServiceRuntime 2.2.0.0
-	Microsoft.WindowsAzure.Storage 2.1.0.0
+  Microsoft.WindowsAzure.Storage 2.1.0.0
+```
 
 ### Azure Worker
 Make an azure worker, and fetch FTP2Azure from nuget. The following boilerplate should help you get started:
