@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<serviceContract xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" dslVersion="1.0.0.0" name="ExampleContract" xmlns="http://schemas.microsoft.com/dsltools/Contracts">
+  <elements>
+    <interface name="FTPServerWorker:FTP2Azure.Command" url="tcp://*:21" />
+    <interface name="FTPServerWorker:FTP2Azure.Passive" url="tcp://*:9001" />
+  </elements>
+</serviceContract>

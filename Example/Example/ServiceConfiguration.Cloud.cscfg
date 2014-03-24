@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="Example" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="3" osVersion="*" schemaVersion="2013-10.2.2">
+  <Role name="FTPServerWorker">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="UseDevelopmentStorage=true" />
+      <Setting name="FTP2Azure.Mode" value="Live" />
+      <Setting name="FTP2Azure.FtpAccount" value="(testuser:testpassword)" />
+      <Setting name="FTP2Azure.FtpServerHost" value="[yourCloudApp].cloudapp.net" />
+      <Setting name="FTP2Azure.MaxIdleSeconds" value="120" />
+      <Setting name="FTP2Azure.QueueNotification" value="false" />
+      <Setting name="FTP2Azure.ConnectionEncoding" value="UTF8" />
+      <Setting name="FTP2Azure.MaxClients" value="5" />
+      <Setting name="FTP2Azure.StorageAccount" value="UseDevelopmentStorage=true" />
+    </ConfigurationSettings>
+  </Role>
+</ServiceConfiguration>

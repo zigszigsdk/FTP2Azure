@@ -1,0 +1,10 @@
+E:\opensauce\ftp2azure\Source\bin\Debug\FTP2Azure.dll
+E:\opensauce\ftp2azure\Source\bin\Debug\FTP2Azure.pdb
+E:\opensauce\ftp2azure\Source\bin\Debug\Microsoft.WindowsAzure.Storage.dll
+E:\opensauce\ftp2azure\Source\bin\Debug\Microsoft.Data.OData.dll
+E:\opensauce\ftp2azure\Source\bin\Debug\Microsoft.Data.Edm.dll
+E:\opensauce\ftp2azure\Source\bin\Debug\System.Spatial.dll
+E:\opensauce\ftp2azure\Source\bin\Debug\Microsoft.WindowsAzure.Storage.xml
+E:\opensauce\ftp2azure\Source\obj\Debug\FTP2Azure.csprojResolveAssemblyReference.cache
+E:\opensauce\ftp2azure\Source\obj\Debug\FTP2Azure.dll
+E:\opensauce\ftp2azure\Source\obj\Debug\FTP2Azure.pdb

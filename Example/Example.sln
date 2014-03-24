@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{CC5FD16D-436D-48AD-A40C-5A424C6E3E79}") = "Example", "Example\Example.ccproj", "{95EE29B4-07FD-4747-9AB5-E4EF8B62AEEA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FTPServerWorker", "FTPServerWorker\FTPServerWorker.csproj", "{EE5A3BAF-6505-4331-A7B3-E607E236A703}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{95EE29B4-07FD-4747-9AB5-E4EF8B62AEEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95EE29B4-07FD-4747-9AB5-E4EF8B62AEEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95EE29B4-07FD-4747-9AB5-E4EF8B62AEEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95EE29B4-07FD-4747-9AB5-E4EF8B62AEEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE5A3BAF-6505-4331-A7B3-E607E236A703}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE5A3BAF-6505-4331-A7B3-E607E236A703}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE5A3BAF-6505-4331-A7B3-E607E236A703}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE5A3BAF-6505-4331-A7B3-E607E236A703}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
