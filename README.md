@@ -89,7 +89,11 @@ Note that the username will be the name of the blob storage container.
  - usernames and passwords set in the service cofig file cannot contain the following characters: `(`, `)` and `:`
  - files cannot be overwritten. They have to be deleted first.
 
+## Improvement ideas
+- keep the decoding logic solely inside of FtpSocketHandler and only pass FtpConnectionObject the full string message once an end-of-line is reached.
+
 
 ## Credit
  - Mohammed Habeeb for the original version of [C# FTP Server](http://www.codeguru.com/csharp/csharp/cs_internet/desktopapplications/article.php/c13163/Simple-FTP-Demo-Application-Using-CNET-20.htm)
  - [FTP2Azure codeplex team](http://ftp2azure.codeplex.com/team/view), for the previous versions.
+ - On github: [ryandle](https://github.com/ryandle)
