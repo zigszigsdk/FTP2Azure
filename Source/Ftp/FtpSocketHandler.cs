@@ -75,7 +75,7 @@ namespace AzureFtpServer.Ftp
 
                 while (nReceived > 0)
                 {
-                    m_theCommands.Process(abData);
+                    m_theCommands.Process(abData, nReceived);
 
                     // the Read method will block
                     nReceived = m_theSocket.GetStream().Read(abData, 0, m_nBufferSize);

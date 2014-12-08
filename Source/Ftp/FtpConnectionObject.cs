@@ -6,6 +6,7 @@ using AzureFtpServer.Ftp.FileSystem;
 using AzureFtpServer.FtpCommands;
 using AzureFtpServer.Ftp;
 using AzureFtpServer.General;
+using System.Diagnostics;
 
 namespace AzureFtpServer.Ftp
 {
@@ -17,18 +18,15 @@ namespace AzureFtpServer.Ftp
         private readonly Hashtable m_theCommandHashTable;
         private bool isLogged;
         private static bool m_useDataSocket;
+        private StringBuilder currentMessage;
 
         public event AzureFtpServer.Ftp.FtpServer.UserAccessEvent UserLoginEvent;
         public event AzureFtpServer.Ftp.FtpServer.UserAccessEvent UserLogoutEvent;
 
         public bool DataSocketOpen
-        { 
+        {
             get { return m_useDataSocket; }
         }
-
-
-
-
 
         public FtpConnectionObject(IFileSystemClassFactory fileSystemClassFactory, int nId, TcpClient socket)
             : base(nId, socket)
@@ -38,9 +36,10 @@ namespace AzureFtpServer.Ftp
             isLogged = false;
             m_useDataSocket = false;
             LoadCommands();
+            currentMessage = new StringBuilder();
         }
 
-        ~FtpConnectionObject() 
+        ~FtpConnectionObject()
         {
             LogOut();
         }
@@ -104,7 +103,7 @@ namespace AzureFtpServer.Ftp
             AddCommand(new SystemCommandHandler(this));
             AddCommand(new TypeCommandHandler(this));
             AddCommand(new UserCommandHandler(this));
-            
+
 
             //Obsolete commands
             AddCommand(new XCdupCommandHandler(this));
@@ -119,7 +118,6 @@ namespace AzureFtpServer.Ftp
             AddCommand(new MlsdCommandHandler(this));
             AddCommand(new MlstCommandHandler(this));
             AddCommand(new SizeCommandHandler(this));
-     
         }
 
         private void AddCommand(FtpCommandHandler handler)
@@ -127,11 +125,29 @@ namespace AzureFtpServer.Ftp
             m_theCommandHashTable.Add(handler.Command, handler);
         }
 
-        public void Process(Byte[] abData)
+        public void Process(Byte[] abData, int bufferLength)
         {
-            string sMessage = this.Encoding.GetString(abData);
-            sMessage = sMessage.Substring(0, sMessage.IndexOf('\r'));
+            string sMessage = this.Encoding.GetString(abData, 0, bufferLength);
+            int indexOfCarriageReturn = sMessage.IndexOf('\r');
 
+            if (indexOfCarriageReturn == -1)
+            {
+                // the full message line has not yet been sent, append the current buffer and return
+                // so that the rest of the message can be read
+                currentMessage.Append(sMessage);
+                return;
+            }
+            else
+            {
+                // current payload contains carriage return, read up to that point and
+                // append to the current message
+                sMessage = sMessage.Substring(0, indexOfCarriageReturn);
+                currentMessage.Append(sMessage);
+                // don't return; time to process the message
+            }
+
+            sMessage = currentMessage.ToString();
+            currentMessage = new StringBuilder();
             FtpServerMessageHandler.SendMessage(Id, sMessage);
 
             string sCommand;
