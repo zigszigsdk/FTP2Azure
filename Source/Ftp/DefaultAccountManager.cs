@@ -1,21 +1,18 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using Microsoft.WindowsAzure.ServiceRuntime;
 using AzureFtpServer.Provider;
 
 namespace AzureFtpServer.Ftp
 {
     /// AccountManager Class
     /// Read account information from config settings and store valid (username,password) pairs
-    class AccountManager
+    public class DefaultAccountManager : IAccountManager
     {
         private const char separator = ':';
         private Dictionary<string, string> _accounts;
         private int _usernum;
 
-        public AccountManager()
+        public DefaultAccountManager()
         {
             _accounts = new Dictionary<string, string>();
             _usernum = 0;
@@ -26,8 +23,6 @@ namespace AzureFtpServer.Ftp
         {
             get { return _usernum; }
         }
-
-
 
         /// Read the settings in RoleEnvironment, insert into the accounts dictionary
         public int LoadConfigration()
@@ -69,7 +64,7 @@ namespace AzureFtpServer.Ftp
                 string username = oneAccount.Substring(0, separatoridx);
 
                 // check the username whether conform to the naming rules
-                if (!CheckUsername(username))
+                if (!AccountValidator.IsValid(username))
                 {
                     Trace.WriteLine(string.Format("Invalid <username, password> pair ({0}) in cscfg.", oneAccount), "Warnning");
                     continue;
@@ -108,20 +103,5 @@ namespace AzureFtpServer.Ftp
             return _accounts[username];
            
         }
-
-        /// checks whether username conform to the Azure container naming rules
-        /// 1. start with a letter or number, and can contain only letters, numbers, and the dash (-) character
-        /// 2. Every dash (-) character must be immediately preceded and followed by a letter or number; 
-        ///    consecutive dashes are not permitted in container names.
-        /// 3. All letters in a container name must be lowercase.
-        /// 4. Container names must be from 3 through 63 characters long.
-        private bool CheckUsername(string username)
-        {
-            if (!Regex.IsMatch(username, @"^\$root$|^[a-z0-9]([a-z0-9]|(?<=[a-z0-9])-(?=[a-z0-9])){2,62}$"))
-                return false;
-
-            return true;
-        }
-
     }
 }

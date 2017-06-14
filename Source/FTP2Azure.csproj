@@ -75,7 +75,8 @@
     <Compile Include="Azure\ExtensionMethods.cs" />
     <Compile Include="Ftp\AbortCommandHandler.cs" />
     <Compile Include="Ftp\AccountCommandHandler.cs" />
-    <Compile Include="Ftp\AccountManager.cs" />
+    <Compile Include="Ftp\AccountValidator.cs" />
+    <Compile Include="Ftp\DefaultAccountManager.cs" />
     <Compile Include="Ftp\AlloCommandHandler.cs" />
     <Compile Include="Ftp\AppendCommandHandler.cs" />
     <Compile Include="Ftp\CDUPCommandHandler.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="Ftp\FtpSocketHandler.cs" />
     <Compile Include="Ftp\General.cs" />
     <Compile Include="Ftp\HelpCommandHandler.cs" />
+    <Compile Include="Ftp\IAccountManager.cs" />
     <Compile Include="Ftp\Interfaces.cs" />
     <Compile Include="Ftp\ListCommandHandler.cs" />
     <Compile Include="Ftp\ListCommandHandlerBase.cs" />

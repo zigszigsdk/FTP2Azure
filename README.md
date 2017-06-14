@@ -65,6 +65,29 @@ Make an azure worker, and add the content of the source folder. The following bo
     }
 ```
 
+### Implementation own an Account Manager
+For use own an Account Manager you should implement interface IAccountManager and pass him into FtpServer constructor as a parameter.
+```c#
+    class AcccountManager : IAccountManager
+    {
+        public int UserNum { get; }
+        public int LoadConfigration()
+        {
+            // Implement your own logic of loading accounts from another source, e.g. database, Web API, external config file.
+        }
+
+        public bool CheckAccount(string username, string password)
+        {
+            // Implement your own logic of checking  account and password
+        }
+
+        public string GetPassword(string username)
+        {
+            // Implement your own logic of getting password by username
+        }
+    }
+```
+
 ### Service Config:
 ```xml
       <Setting name="FTP2Azure.Mode" value="Debug" /> <!--Debug or Live-->

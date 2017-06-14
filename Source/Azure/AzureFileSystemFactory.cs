@@ -5,18 +5,17 @@ namespace AzureFtpServer.Azure
 {
     public class AzureFileSystemFactory : IFileSystemClassFactory
     {
-        private AccountManager m_accountManager;
+        private readonly IAccountManager m_accountManager;
 
-        public AzureFileSystemFactory()
+        public AzureFileSystemFactory(IAccountManager accountManager)
         {
-            m_accountManager = new AccountManager();
+            m_accountManager = accountManager;
             m_accountManager.LoadConfigration();
         }
 
-
         public IFileSystem Create(string sUser, string sPassword)
         {
-            if ((sUser == null) || (sPassword == null))
+            if (string.IsNullOrWhiteSpace(sUser) || string.IsNullOrWhiteSpace(sPassword))
                 return null;
 
             if (!m_accountManager.CheckAccount(sUser, sPassword))
@@ -24,9 +23,8 @@ namespace AzureFtpServer.Azure
             
             string containerName = sUser; 
             var system = new AzureFileSystem(containerName);
-            
+
             return system;
         }
-
     }
 }
