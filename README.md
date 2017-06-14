@@ -110,7 +110,6 @@ Note that the username will be the name of the blob storage container.
 ## Known issues
  - Passive mode does not currently work (the client will have to forward ports in order to connect and stay in active)
  - usernames and passwords set in the service cofig file cannot contain the following characters: `(`, `)` and `:`
- - files cannot be overwritten. They have to be deleted first.
 
 ## Improvement ideas
 - keep the decoding logic solely inside of FtpSocketHandler and only pass FtpConnectionObject the full string message once an end-of-line is reached.
