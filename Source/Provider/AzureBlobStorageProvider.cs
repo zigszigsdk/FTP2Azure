@@ -61,7 +61,7 @@ namespace AzureFtpServer.Provider
         private void Initialise(string containerName)
         {
             if (String.IsNullOrEmpty(containerName))
-                throw new ArgumentException("You must provide the base Container Name", "containerName");
+                throw new ArgumentException("You must provide the base Container Name", nameof(containerName));
 
             ContainerName = containerName;
 

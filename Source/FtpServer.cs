@@ -7,7 +7,6 @@ using System.Diagnostics;
 using AzureFtpServer.Ftp.FileSystem;
 using AzureFtpServer.General;
 using Microsoft.WindowsAzure.ServiceRuntime;
-using AzureFtpServer.Provider;
 using System.Net;
 using AzureFtpServer.Azure;
 
@@ -15,7 +14,7 @@ namespace AzureFtpServer.Ftp
 {
     /// Listens for incoming connections and accepts them.
     /// Incomming socket connections are then passed to the socket handling class (FtpSocketHandler).
-    public class FtpServer
+    public class FtpServer : IDisposable
     {
         private readonly ArrayList m_apConnections;
         private readonly IFileSystemClassFactory m_fileSystemClassFactory;
@@ -28,18 +27,26 @@ namespace AzureFtpServer.Ftp
 
 
         public delegate void ConnectionHandler(int nId);
+
         public delegate void UserAccessEvent(string username);
+
         public delegate void ErrorEvent(Exception e);
 
         public event ConnectionHandler ConnectionClosed;
         public event ConnectionHandler NewConnection;
         public event UserAccessEvent UserLoginEvent;
         public event UserAccessEvent UserLogoutEvent;
-        public event ErrorEvent errorHandler;
+        public event ErrorEvent ErrorHandler;
 
         public int numberOfConnections = 0;
 
-        public FtpServer() : this(new AzureFileSystemFactory()) { }
+        public FtpServer(IAccountManager accountManager) : this(new AzureFileSystemFactory(accountManager))
+        {
+        }
+
+        public FtpServer() : this(new AzureFileSystemFactory(new DefaultAccountManager()))
+        {
+        }
 
         public FtpServer(IFileSystemClassFactory fileSystemClassFactory)
         {
@@ -47,19 +54,10 @@ namespace AzureFtpServer.Ftp
             m_fileSystemClassFactory = fileSystemClassFactory;
         }
 
-        ~FtpServer()
-        {
-            if (m_socketListen != null)
-            {
-                m_socketListen.Stop();
-            }
-        }
-
         public bool Started
         {
             get { return m_started; }
         }
-
 
         public void Start()
         {
@@ -75,10 +73,9 @@ namespace AzureFtpServer.Ftp
                 m_theThread.Start();
                 m_started = true;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                if (errorHandler != null)
-                    errorHandler(e);
+                ErrorHandler?.Invoke(e);
             }
         }
 
@@ -87,8 +84,8 @@ namespace AzureFtpServer.Ftp
             for (int nConnection = 0; nConnection < m_apConnections.Count; nConnection++)
             {
                 var handler = m_apConnections[nConnection] as FtpSocketHandler;
-                
-                handler.Stop();
+
+                handler?.Stop();
             }
 
             m_socketListen.Stop();
@@ -132,8 +129,7 @@ namespace AzureFtpServer.Ftp
                         catch (SocketException e)
                         {
                             fContinue = false;
-                            if (errorHandler != null)
-                                errorHandler(e);
+                            ErrorHandler?.Invoke(e);
                         }
                         finally
                         {
@@ -168,8 +164,7 @@ namespace AzureFtpServer.Ftp
             }
             catch (Exception e)
             {
-                if (errorHandler != null)
-                    errorHandler(e);
+                ErrorHandler?.Invoke(e);
             }
         }
 
@@ -201,13 +196,13 @@ namespace AzureFtpServer.Ftp
             string maxClients = RoleEnvironment.GetConfigurationSettingValue("FTP2Azure.MaxClients");
 
             int iMaxClients = 5;
-            
+
             try
             {
                 iMaxClients = Convert.ToInt32(maxClients);
             }
             catch (Exception)
-            { 
+            {
                 // if the "MaxClients" setting is invalid to convert into integer, use default value
                 Trace.WriteLine(string.Format("Invalid MaxClients setting: {0}", maxClients), "Warnning");
             }
@@ -250,14 +245,8 @@ namespace AzureFtpServer.Ftp
 
             handler.Closed += handler_Closed;
 
-            if (NewConnection != null)
-            {
-                NewConnection(m_nId);
-            }
+            NewConnection?.Invoke(m_nId);
         }
-
-
-
 
         private void handler_Closed(FtpSocketHandler handler)
         {
@@ -269,10 +258,7 @@ namespace AzureFtpServer.Ftp
                 string.Format("Remover a handler, current connection number is {0}", numberOfConnections),
                 "Information");
 
-            if (ConnectionClosed != null)
-            {
-                ConnectionClosed(handler.Id);
-            }
+            ConnectionClosed?.Invoke(handler.Id);
         }
 
         public void TraceMessage(int nId, string sMessage)
@@ -280,5 +266,9 @@ namespace AzureFtpServer.Ftp
             Trace.WriteLine(string.Format("{0}: {1}", nId, sMessage), "FtpServerMessage");
         }
 
+        public void Dispose()
+        {
+            m_socketListen?.Stop();
+        }
     }
 }
