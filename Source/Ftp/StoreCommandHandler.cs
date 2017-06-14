@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using System.Security.Cryptography;
 using AzureFtpServer.Ftp;
@@ -33,9 +34,12 @@ namespace AzureFtpServer.FtpCommands
                 return GetMessage(553, string.Format("\"{0}\" is not a valid file name", sMessage));
             }
 
-            if (ConnectionObject.FileSystemObject.FileExists(sFile))
+			if (ConnectionObject.FileSystemObject.FileExists(sFile))
             {
-                return GetMessage(553, string.Format("File \"{0}\" already exists.", sMessage));
+	            if (!ConnectionObject.FileSystemObject.DeleteFile(sFile))
+	            {
+		            return GetMessage(550, string.Format("Delete file \"{0}\" failed.", sFile));
+	            }
             }
 
             var socketData = new FtpDataSocket(ConnectionObject);
@@ -81,7 +85,7 @@ namespace AzureFtpServer.FtpCommands
                     nReceived = socketData.Receive(abData);
                 }
                 md5Hash.TransformFinalBlock(new byte[1], 0, 0);
-                md5Value = BytesToStr(md5Hash.Hash);                
+                md5Value = BytesToStr(md5Hash.Hash);
             }
             // TYPE A
             // won't compute md5, because read characters from client stream
