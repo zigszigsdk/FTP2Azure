@@ -1,4 +1,5 @@
 using AzureFtpServer.Ftp;
+using AzureFtpServer.Ftp.FileSystem;
 
 namespace AzureFtpServer.FtpCommands
 {
@@ -22,7 +23,7 @@ namespace AzureFtpServer.FtpCommands
                 return GetMessage(550, string.Format("File doesn't exist ({0})", sPath));
             }
 
-            var info = ConnectionObject.FileSystemObject.GetFileInfo(sPath);
+			IFileInfo info = ConnectionObject.FileSystemObject.GetFileInfo(sPath);
 
             if (info == null)
             {
