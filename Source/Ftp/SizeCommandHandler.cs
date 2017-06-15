@@ -23,14 +23,14 @@ namespace AzureFtpServer.FtpCommands
                 return GetMessage(550, string.Format("File doesn't exist ({0})", sPath));
             }
 
-            IFileInfo info = ConnectionObject.FileSystemObject.GetFileInfo(sPath);
+			IFileInfo info = ConnectionObject.FileSystemObject.GetFileInfo(sPath);
 
             if (info == null)
             {
                 return GetMessage(550, "Error in getting file information");
             }
 
-            return GetMessage(220, info.GetSize().ToString());
+            return GetMessage(213, info.GetSize().ToString());
         }
     }
 }
