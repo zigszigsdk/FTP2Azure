@@ -14,13 +14,6 @@ using System.Text;
 
 namespace AzureFtpServer.Provider
 {
-
-    public class StorageProviderEventArgs : EventArgs
-    {
-        public StorageOperation Operation;
-        public StorageOperationResult Result;
-    }
-
     public sealed class AzureBlobStorageProvider
     {
         #region Member variables
@@ -44,7 +37,7 @@ namespace AzureFtpServer.Provider
 
         public bool UseHttps { get; private set; }
 
-        public String ContainerName { private get; set; }
+        public string ContainerName { get; private set; }
 
         #endregion
 
@@ -60,51 +53,38 @@ namespace AzureFtpServer.Provider
         // Initialiser method
         private void Initialise(string containerName)
         {
-            if (String.IsNullOrEmpty(containerName))
+            if (string.IsNullOrEmpty(containerName))
                 throw new ArgumentException("You must provide the base Container Name", nameof(containerName));
 
             ContainerName = containerName;
 
-            if (StorageProviderConfiguration.Mode == Modes.Debug)
-            {
-                _account = CloudStorageAccount.DevelopmentStorageAccount;
-                _blobClient = _account.CreateCloudBlobClient();
-                _blobClient.DefaultRequestOptions = new BlobRequestOptions()
-                {
-                    ServerTimeout = new TimeSpan(0, 0, 0, 5)
-                };
-            }
-            else
-            {
-                _account = CloudStorageAccount.Parse(RoleEnvironment.GetConfigurationSettingValue("FTP2Azure.StorageAccount"));
-                _blobClient = _account.CreateCloudBlobClient();
-                _blobClient.DefaultRequestOptions = new BlobRequestOptions()
-                {
-                    ServerTimeout = new TimeSpan(0, 0, 0, 5)
-                };
-            }
+            _account = ResolveCloudStorageAccount();
 
+            _blobClient = _account.CreateCloudBlobClient();
+            _blobClient.DefaultRequestOptions = BlobRequestOptionsFactory.CreateDefault();
             _container = _blobClient.GetContainerReference(ContainerName);
-            try
+
+            if (_container.Exists())
             {
-                _container.FetchAttributes();
+                return;
             }
-            catch (StorageException)
+
+            Trace.WriteLine($"Create new container: {ContainerName}", "Information");
+            _container.Create();
+
+            // set new container's permissions
+            // Create a permission policy to set the public access setting for the container. 
+            var containerPermissions = new BlobContainerPermissions
             {
-                Trace.WriteLine(string.Format("Create new container: {0}", ContainerName), "Information");
-                _container.Create();
+                PublicAccess = BlobContainerPublicAccessType.Off
+            };
 
-                // set new container's permissions
-                // Create a permission policy to set the public access setting for the container. 
-                BlobContainerPermissions containerPermissions = new BlobContainerPermissions();
+            // The public access setting explicitly specifies that the container is private,
+            // so that it can't be accessed anonymously.
 
-                // The public access setting explicitly specifies that the container is private,
-                // so that it can't be accessed anonymously.
-                containerPermissions.PublicAccess = BlobContainerPublicAccessType.Off;
-
-                //Set the permission policy on the container.
-                _container.SetPermissions(containerPermissions);
-            }
+            //Set the permission policy on the container.
+            Trace.WriteLine($"Set the permission policy: {ContainerName}", "Information");
+            _container.SetPermissions(containerPermissions);
         }
 
         #region Storage operations
@@ -113,10 +93,7 @@ namespace AzureFtpServer.Provider
         {
             CloudBlockBlob blob = GetCloudBlob(path);
 
-            if (blob == null)
-                return null;
-
-            Stream stream = blob.OpenWrite();
+            Stream stream = blob?.OpenWrite();
             return stream;
         }
 
@@ -160,11 +137,11 @@ namespace AzureFtpServer.Provider
             if (b != null)
             {
                 // Need AsyncCallback?
-                b.Delete();
+                b.DeleteIfExists();
             }
             else
             {
-                Trace.WriteLine(string.Format("Get blob reference \"{0}\" failed", path), "Error");
+                Trace.WriteLine($"Get blob reference \"{path}\" failed", "Error");
                 return false;
             }
             return true;
@@ -192,11 +169,11 @@ namespace AzureFtpServer.Provider
                 if (b != null)
                 {
                     // Need AsyncCallback?
-                    b.Delete();
+                    b.DeleteIfExists();
                 }
                 else
                 {
-                    Trace.WriteLine(string.Format("Get blob reference \"{0}\" failed", uri), "Error");
+                    Trace.WriteLine($"Get blob reference \"{uri}\" failed", "Error");
                     return false;
                 }
             }
@@ -214,7 +191,7 @@ namespace AzureFtpServer.Provider
         public AzureCloudFile GetBlobInfo(string path, bool isDirectory)
         {
             // check parameter
-            if (path == null || path == "" || path[0] != '/')
+            if (string.IsNullOrEmpty(path) || path[0] != '/')
                 return null;
 
             // get the info of root directory
@@ -231,17 +208,19 @@ namespace AzureFtpServer.Provider
             // convert to azure path
             string blobPath = path.ToAzurePath();
 
-            var o = new AzureCloudFile();
+            var azureCloudFile = new AzureCloudFile();
 
             try
             {
                 if (isDirectory)
                 {
                     CloudBlobDirectory bDir = _container.GetDirectoryReference(blobPath);
+                    
                     // check whether directory exists
-                    if (bDir.ListBlobs().Count() == 0)
+                    if (!bDir.ListBlobs().Any())
                         throw new StorageException(new RequestResult(), "directory is empty", new Exception());
-                    o = new AzureCloudFile
+
+                    azureCloudFile = new AzureCloudFile
                     {
                         Uri = bDir.Uri,
                         FtpPath = path,
@@ -255,7 +234,7 @@ namespace AzureFtpServer.Provider
                 {
                     ICloudBlob b = _container.GetBlockBlobReference(blobPath);
                     b.FetchAttributes();
-                    o = new AzureCloudFile
+                    azureCloudFile = new AzureCloudFile
                     {
                         Uri = b.Uri,
                         LastModified = b.Properties.LastModified.GetValueOrDefault(),
@@ -268,11 +247,11 @@ namespace AzureFtpServer.Provider
             }
             catch (StorageException)
             {
-                Trace.WriteLine(string.Format("Get blob {0} failed", path), "Error");
+                Trace.WriteLine($"Get blob {path} failed", "Error");
                 return null;
             }
 
-            return o;
+            return azureCloudFile;
         }
 
         /// <summary>
@@ -320,28 +299,19 @@ namespace AzureFtpServer.Provider
             if (!IsValidFile(originalPath))
             {
                 throw new FileNotFoundException("The path supplied does not exist on the storage provider.",
-                                                originalPath);
+                    originalPath);
             }
 
             newBlob.StartCopy(originalBlob);
-
-            try
-            {
-                newBlob.FetchAttributes();
-                originalBlob.Delete();
-                return StorageOperationResult.Completed;
-            }
-            catch (StorageException)
-            {
-                throw;
-            }
+            originalBlob.DeleteIfExists();
+            return StorageOperationResult.Completed;
         }
 
         public bool CreateDirectory(string path)
         {
             path = path.ToAzurePath();
 
-            string blobName = String.Concat(path, "required.req");
+            string blobName = string.Concat(path, "required.req");
 
             try
             {
@@ -380,7 +350,7 @@ namespace AzureFtpServer.Provider
             // error check
             if (!dirPath.EndsWith(@"/"))
             {
-                Trace.WriteLine(string.Format("Invalid parameter {0} for function IsValidDirectory", dirPath), "Error");
+                Trace.WriteLine($"Invalid parameter {dirPath} for function IsValidDirectory", "Error");
                 return false;
             }
 
@@ -391,7 +361,7 @@ namespace AzureFtpServer.Provider
             CloudBlobDirectory blobDirectory = _container.GetDirectoryReference(blobDirPath);
 
             // non-exist blobDirectory won't contain blobs
-            if (blobDirectory.ListBlobs().Count() == 0)
+            if (!blobDirectory.ListBlobs().Any())
                 return false;
 
             return true;
@@ -410,7 +380,7 @@ namespace AzureFtpServer.Provider
             // error check
             if (filePath.EndsWith(@"/"))
             {
-                Trace.WriteLine(string.Format("Invalid parameter {0} for function IsValidFile", filePath), "Error");
+                Trace.WriteLine($"Invalid parameter {filePath} for function IsValidFile", "Error");
                 return false;
             }
 
@@ -443,7 +413,7 @@ namespace AzureFtpServer.Provider
             ICloudBlob rawBlob = _container.GetBlockBlobReference(filePath);
             if (rawBlob.Properties.BlobType == BlobType.PageBlob)
             {
-                return false;//for page blob, append is not supported
+                return false; //for page blob, append is not supported
             }
 
             CloudBlockBlob blob = _container.GetBlockBlobReference(filePath);
@@ -476,15 +446,15 @@ namespace AzureFtpServer.Provider
                     {
                         //put last block & break
                         string strBlockId = GetBlockID(blockList);
-                        blob.PutBlock(strBlockId, new System.IO.MemoryStream(buffer, 0, nRead), null);
+                        blob.PutBlock(strBlockId, new MemoryStream(buffer, 0, nRead), null);
                         blockList.Add(strBlockId);
                         break;
                     }
-                    else if (actualRead == (blockSize - nRead))// buffer full
+                    else if (actualRead == (blockSize - nRead)) // buffer full
                     {
                         //put this block
                         string strBlockId = GetBlockID(blockList);
-                        blob.PutBlock(strBlockId, new System.IO.MemoryStream(buffer), null);
+                        blob.PutBlock(strBlockId, new MemoryStream(buffer), null);
                         blockList.Add(strBlockId);
                         nRead = 0;
                         continue;
@@ -528,7 +498,7 @@ namespace AzureFtpServer.Provider
             ICloudBlob blob = _container.GetBlockBlobReference(fileBlobPath);
 
             // Create a message and add it into the queue
-            CloudQueueMessage message = new CloudQueueMessage(string.Format("User uploaded blob: {0}", blob.Uri));
+            CloudQueueMessage message = new CloudQueueMessage($"User uploaded blob: {blob.Uri}");
             queue.AddMessage(message);
         }
 
@@ -547,6 +517,24 @@ namespace AzureFtpServer.Provider
             blob.FetchAttributes();
 
             blob.Properties.ContentMD5 = md5Value;
+
+            blob.SetProperties();
+        }
+
+        /// <summary>
+        /// Set blob MimeType
+        /// </summary>
+        /// <param name="filePath">blob path</param>
+        /// <param name="mimeType"></param>
+        public void SetFileMimeType(string filePath, string mimeType)
+        {
+            // get the blob
+            // remove the first '/' char
+            string fileBlobPath = filePath.ToAzurePath();
+            ICloudBlob blob = _container.GetBlockBlobReference(fileBlobPath);
+
+            blob.FetchAttributes();
+            blob.Properties.ContentType = mimeType;
 
             blob.SetProperties();
         }
@@ -572,7 +560,7 @@ namespace AzureFtpServer.Provider
             while (true)
             {
                 string tempStr = Convert.ToBase64String(Encoding.ASCII.GetBytes(DateTime.Now.ToBinary().ToString()));
-                int idLength = (currentIds.Count() == 0) ? 64 : currentIds[0].Length;
+                int idLength = (!currentIds.Any()) ? 64 : currentIds[0].Length;
                 tempStr = TextHelpers.RightAlignString(tempStr, idLength, 'A');
                 bool sameId = false;
                 foreach (var id in currentIds)
@@ -601,6 +589,13 @@ namespace AzureFtpServer.Provider
             blob.FetchAttributes();
 
             Trace.WriteLine("GetMd5#" + blob.Properties.ContentMD5);
+        }
+
+        private static CloudStorageAccount ResolveCloudStorageAccount()
+        {
+            return StorageProviderConfiguration.Mode == Modes.Debug
+                ? CloudStorageAccount.DevelopmentStorageAccount
+                : CloudStorageAccount.Parse(RoleEnvironment.GetConfigurationSettingValue("FTP2Azure.StorageAccount"));
         }
 
         #endregion
