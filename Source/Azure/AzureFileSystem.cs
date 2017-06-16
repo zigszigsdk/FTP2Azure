@@ -45,14 +45,14 @@ namespace AzureFtpServer.Azure
         public IFileInfo GetFileInfo(string sPath)
         {
             AzureCloudFile file = _provider.GetBlobInfo(sPath, false);
-            
+
             return new AzureFileInfo(file);
         }
 
         public IFileInfo GetDirectoryInfo(string sDirPath)
         {
             AzureCloudFile dir = _provider.GetBlobInfo(sDirPath, true);
-            
+
             return new AzureFileInfo(dir);
         }
 
@@ -69,7 +69,7 @@ namespace AzureFtpServer.Azure
             return result;
         }
 
-        string[] FilterOutRequiredReqFile(string[] filesWithPath) 
+        string[] FilterOutRequiredReqFile(string[] filesWithPath)
         {
             List<string> result = new List<string>();
             foreach (string filename in filesWithPath)
@@ -79,15 +79,15 @@ namespace AzureFtpServer.Azure
             return result.ToArray();
         }
 
-        public string[] GetAllFilesInSubs(string sDirPath) 
+        public string[] GetAllFilesInSubs(string sDirPath)
         {
             string[] result = { };
 
-            string[] sDirPaths = GetAllSubDirectoriesIn(new string[] { sDirPath });
+            string[] sDirPaths = GetAllSubDirectoriesIn(new string[] {sDirPath});
 
-            foreach (string path in sDirPaths) 
+            foreach (string path in sDirPaths)
                 result = StringArrayConcat(result, GetFiles(path));
-            
+
             return result;
         }
 
@@ -99,9 +99,10 @@ namespace AzureFtpServer.Azure
         public string[] GetDirectories(string sDirPath)
         {
             IEnumerable<CloudBlobDirectory> directories = _provider.GetDirectoryListing(sDirPath);
-            string[] result =  directories.Select(r => r.Uri.AbsolutePath.ToString()).ToArray().ToFtpPath(sDirPath);
+            string[] result = directories.Select(r => r.Uri.AbsolutePath.ToString()).ToArray().ToFtpPath(sDirPath);
             return result;
         }
+
         public string[] GetAllSubDirectoriesIn(string[] sDirPaths)
         {
             foreach (string path in sDirPaths)
@@ -110,7 +111,7 @@ namespace AzureFtpServer.Azure
             return sDirPaths;
         }
 
-        string[] StringArrayConcat(string[] x, string[] y) 
+        string[] StringArrayConcat(string[] x, string[] y)
         {
             string[] res = new string[x.Length + y.Length];
             x.CopyTo(res, 0);
@@ -172,6 +173,11 @@ namespace AzureFtpServer.Azure
         public void SetFileMd5(string sPath, string md5Value)
         {
             _provider.SetBlobMd5(sPath, md5Value);
+        }
+
+        public void SetFileMimeType(string sPath, string mimeType)
+        {
+            _provider.SetFileMimeType(sPath, mimeType);
         }
 
         #endregion

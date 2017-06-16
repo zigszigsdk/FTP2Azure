@@ -551,6 +551,24 @@ namespace AzureFtpServer.Provider
             blob.SetProperties();
         }
 
+        /// <summary>
+        /// Set blob MimeType
+        /// </summary>
+        /// <param name="filePath">blob path</param>
+        /// <param name="mimeType"></param>
+        public void SetFileMimeType(string filePath, string mimeType)
+        {
+            // get the blob
+            // remove the first '/' char
+            string fileBlobPath = filePath.ToAzurePath();
+            ICloudBlob blob = _container.GetBlockBlobReference(fileBlobPath);
+
+            blob.FetchAttributes();
+            blob.Properties.ContentType = mimeType;
+
+            blob.SetProperties();
+        }
+
         #endregion
 
         #region "Helper methods"

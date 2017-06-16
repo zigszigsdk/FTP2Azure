@@ -1,6 +1,6 @@
-using System.Diagnostics;
 using System.Text;
 using System.Security.Cryptography;
+using System.Web;
 using AzureFtpServer.Ftp;
 using AzureFtpServer.Ftp.FileSystem;
 using AzureFtpServer.General;
@@ -34,12 +34,12 @@ namespace AzureFtpServer.FtpCommands
                 return GetMessage(553, string.Format("\"{0}\" is not a valid file name", sMessage));
             }
 
-			if (ConnectionObject.FileSystemObject.FileExists(sFile))
+            if (ConnectionObject.FileSystemObject.FileExists(sFile))
             {
-	            if (!ConnectionObject.FileSystemObject.DeleteFile(sFile))
-	            {
-		            return GetMessage(550, string.Format("Delete file \"{0}\" failed.", sFile));
-	            }
+                if (!ConnectionObject.FileSystemObject.DeleteFile(sFile))
+                {
+                    return GetMessage(550, string.Format("Delete file \"{0}\" failed.", sFile));
+                }
             }
 
             var socketData = new FtpDataSocket(ConnectionObject);
@@ -53,7 +53,7 @@ namespace AzureFtpServer.FtpCommands
 
             if (file == null)
             {
-                socketData.Close();// close data socket
+                socketData.Close(); // close data socket
                 return GetMessage(550, "Couldn't open file");
             }
 
@@ -94,7 +94,9 @@ namespace AzureFtpServer.FtpCommands
                 int readSize = SocketHelpers.CopyStreamAscii(socketData.Socket.GetStream(), file.stream, m_nBufferSize);
                 FtpServerMessageHandler.SendMessage(ConnectionObject.Id, string.Format("Use ascii type success, read {0} chars!", readSize));
             }
-            else { // mustn't reach
+            else // mustn't reach
+            {
+                
                 file.Close();
                 socketData.Close();
                 return GetMessage(451, "Error in transfer data: invalid data type.");
@@ -108,6 +110,10 @@ namespace AzureFtpServer.FtpCommands
 
             // record md5
             ConnectionObject.FileSystemObject.SetFileMd5(sFile, md5Value);
+
+            //record mimetype
+            var mimetype = MimeMapping.GetMimeMapping(sFile);
+            ConnectionObject.FileSystemObject.SetFileMimeType(sFile, mimetype);
 
             return GetMessage(226, string.Format("{0} successful", Command));
         }
