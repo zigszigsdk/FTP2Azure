@@ -140,9 +140,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Provider\AzureBlobStorageProvider.cs" />
     <Compile Include="Provider\AzureCloudFile.cs" />
+    <Compile Include="Provider\BlobRequestOptionsFactory.cs" />
     <Compile Include="Provider\Configuration.cs" />
     <Compile Include="Provider\StorageOperation.cs" />
     <Compile Include="Provider\StorageOperationResult.cs" />
+    <Compile Include="Provider\StorageProviderEventArgs.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Ftp\Copyright.txt" />

@@ -26,11 +26,16 @@ namespace AzureFtpServer.FtpCommands
 
         protected override string OnProcess(string sMessage)
         {
+            if (ConnectionObject.PassiveSocket != null)
+            {
+                ConnectionObject.PassiveSocket.Close();
+                ConnectionObject.PassiveSocket = null;
+            }
+
             ConnectionObject.DataConnectionType = DataConnectionType.Passive;
 
             string pasvListenAddress = GetPassiveAddressInfo();
 
-            //return GetMessage(227, string.Format("Entering Passive Mode ({0})", pasvListenAddress));
             TcpListener listener;
             if(StorageProviderConfiguration.Mode == Modes.Live)
                 listener = SocketHelpers.CreateTcpListener(
@@ -40,10 +45,10 @@ namespace AzureFtpServer.FtpCommands
                     IPAddress.Parse("127.0.0.1"), RoleEnvironment.CurrentRoleInstance.InstanceEndpoints["FTP2Azure.Passive"].IPEndpoint.Port));
             if (listener == null)
             {
-                return GetMessage(550, string.Format("Couldn't start listener on port {0}", m_nPort));
+                return GetMessage(550, $"Couldn't start listener on port {m_nPort}");
             }
 
-            SocketHelpers.Send(ConnectionObject.Socket, string.Format("227 Entering Passive Mode ({0})\r\n", pasvListenAddress), ConnectionObject.Encoding);
+            SocketHelpers.Send(ConnectionObject.Socket, GetMessage(227, $"Entering Passive Mode ({pasvListenAddress})"), ConnectionObject.Encoding);
 
             listener.Start();
 
@@ -51,7 +56,7 @@ namespace AzureFtpServer.FtpCommands
 
             listener.Stop();
 
-            return "";
+            return string.Empty;
         }
 
         private string GetPassiveAddressInfo()

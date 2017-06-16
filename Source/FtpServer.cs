@@ -110,7 +110,7 @@ namespace AzureFtpServer.Ftp
 
                 if (m_socketListen != null)
                 {
-                    Trace.TraceInformation("FTP Server listened at: " + ipEndPoint);
+                    Trace.TraceInformation($"FTP Server listened at: {ipEndPoint}");
 
                     m_socketListen.Start();
 
@@ -152,7 +152,19 @@ namespace AzureFtpServer.Ftp
                                 FtpServerMessageHandler.SendMessage(m_nId, "New connection");
 
                                 SendAcceptMessage(socket);
-                                InitialiseSocketHandler(socket);
+
+                                //under stress testing, this happens. Don't know why yet, but let's keep it from crashing
+                                try
+                                {
+                                    InitialiseSocketHandler(socket);
+                                }
+                                catch (ObjectDisposedException ode)
+                                {
+                                    Trace.TraceError($"ObjectDisposedException initializing client socket:\r\n{ode}");
+
+                                    m_nId--;
+                                    socket.Close();
+                                }
                             }
                         }
                     }
@@ -167,7 +179,6 @@ namespace AzureFtpServer.Ftp
                 ErrorHandler?.Invoke(e);
             }
         }
-
 
         /// Init the encoding of the control channel by the Role setting "ConnectionEncoding"
         /// If the value is "ASCII", encoding = Encoding.ASCII
@@ -204,12 +215,12 @@ namespace AzureFtpServer.Ftp
             catch (Exception)
             {
                 // if the "MaxClients" setting is invalid to convert into integer, use default value
-                Trace.WriteLine(string.Format("Invalid MaxClients setting: {0}", maxClients), "Warnning");
+                Trace.WriteLine($"Invalid MaxClients setting: {maxClients}", "Warnning");
             }
 
             if (iMaxClients <= 0)
             {
-                Trace.WriteLine(string.Format("Invalid MaxClients setting: {0}", maxClients), "Warnning");
+                Trace.WriteLine($"Invalid MaxClients setting: {maxClients}", "Warnning");
                 // negtive or 0 is also invalid, use default value
                 iMaxClients = 5;
             }
@@ -239,31 +250,27 @@ namespace AzureFtpServer.Ftp
 
             numberOfConnections = m_apConnections.Count;
 
-            Trace.WriteLine(
-                string.Format("Add a new handler, current connection number is {0}", numberOfConnections),
-                "Information");
+            Trace.WriteLine($"Add a new handler, current connection number is {numberOfConnections}", "Information");
 
-            handler.Closed += handler_Closed;
+            handler.Closed += Handler_Closed;
 
             NewConnection?.Invoke(m_nId);
         }
 
-        private void handler_Closed(FtpSocketHandler handler)
+        private void Handler_Closed(FtpSocketHandler handler)
         {
             m_apConnections.Remove(handler);
 
             numberOfConnections = m_apConnections.Count;
 
-            Trace.WriteLine(
-                string.Format("Remover a handler, current connection number is {0}", numberOfConnections),
-                "Information");
+            Trace.WriteLine($"Remover a handler, current connection number is {numberOfConnections}", "Information");
 
             ConnectionClosed?.Invoke(handler.Id);
         }
 
         public void TraceMessage(int nId, string sMessage)
         {
-            Trace.WriteLine(string.Format("{0}: {1}", nId, sMessage), "FtpServerMessage");
+            Trace.WriteLine($"{nId}: {sMessage}", "FtpServerMessage");
         }
 
         public void Dispose()

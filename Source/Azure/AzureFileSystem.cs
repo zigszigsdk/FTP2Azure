@@ -18,7 +18,8 @@ namespace AzureFtpServer.Azure
         public AzureFileSystem(string containerName)
         {
             // Set container name (if none specified, specify the development container default)
-            _containerName = !string.IsNullOrEmpty(containerName) ? containerName : "DevelopmentContainer";
+            // All letters in a container name must be lowercase
+            _containerName = !string.IsNullOrEmpty(containerName) ? containerName.ToLowerInvariant() : "DevelopmentContainer";
             _provider = new AzureBlobStorageProvider(_containerName);
         }
 

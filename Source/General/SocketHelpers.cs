@@ -1,9 +1,9 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Security.Cryptography;
 using AzureFtpServer.Provider;
 
 namespace AzureFtpServer.General
@@ -61,19 +61,20 @@ namespace AzureFtpServer.General
 
             try
             {
-                if (socket.GetStream() != null)
+                NetworkStream networkStream = socket.GetStream();
+
+                try
+                {
+                    networkStream?.Flush();
+                }
+                catch (SocketException)
+                {
+                }
+                finally
                 {
                     try
                     {
-                        socket.GetStream().Flush();
-                    }
-                    catch (SocketException)
-                    {
-                    }
-
-                    try
-                    {
-                        socket.GetStream().Close();
+                        networkStream?.Close();
                     }
                     catch (SocketException)
                     {
@@ -135,15 +136,10 @@ namespace AzureFtpServer.General
                 ftpHost = StorageProviderConfiguration.FtpServerHost;
             else
                 ftpHost = "localhost";
-            IPHostEntry hostEntry = Dns.GetHostEntry(ftpHost);
-            IPAddress retAddress = null;
-            foreach (var ip in hostEntry.AddressList)
-            {
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    retAddress = ip;
-            }
 
-            return retAddress;
+            IPHostEntry hostEntry = Dns.GetHostEntry(ftpHost);
+
+            return hostEntry?.AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
         }
 
         public static int CopyStreamAscii(Stream input, Stream output, int bufferSize)
