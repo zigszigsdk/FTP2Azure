@@ -1,4 +1,4 @@
-using System.Text;
+using System;
 using System.Security.Cryptography;
 using System.Web;
 using AzureFtpServer.Ftp;
@@ -85,7 +85,7 @@ namespace AzureFtpServer.FtpCommands
                     nReceived = socketData.Receive(abData);
                 }
                 md5Hash.TransformFinalBlock(new byte[1], 0, 0);
-                md5Value = BytesToStr(md5Hash.Hash);
+                md5Value = Convert.ToBase64String(md5Hash.Hash);
             }
             // TYPE A
             // won't compute md5, because read characters from client stream
@@ -116,16 +116,6 @@ namespace AzureFtpServer.FtpCommands
             ConnectionObject.FileSystemObject.SetFileMimeType(sFile, mimetype);
 
             return GetMessage(226, string.Format("{0} successful", Command));
-        }
-
-        private static string BytesToStr(byte[] bytes)
-        {
-            StringBuilder str = new StringBuilder();
-
-            for (int i = 0; i < bytes.Length; i++)
-                str.AppendFormat("{0:X2}", bytes[i]);
-
-            return str.ToString();
         }
     }
 }
