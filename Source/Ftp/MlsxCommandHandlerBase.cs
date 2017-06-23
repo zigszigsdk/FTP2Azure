@@ -30,7 +30,7 @@ namespace AzureFtpServer.FtpCommands
             }
             else
             {
-                entry.Append(string.Format("Type=file;Size={0};Modify={1}; ", info.GetSize(), info.GetModifiedTime().ToString("yyyyMMddHHmmss")));
+                entry.Append($"Type=file;Size={info.GetSize()};Modify={info.GetModifiedTime():yyyyMMddHHmmss}; ");
                 entry.Append(FileNameHelpers.GetFileName(info.Path()));
             }
 

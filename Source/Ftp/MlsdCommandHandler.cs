@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
 using AzureFtpServer.General;
 using AzureFtpServer.Ftp;
 using AzureFtpServer.Ftp.General;
@@ -26,7 +27,7 @@ namespace AzureFtpServer.FtpCommands
             // checks the dir name
             if (!FileNameHelpers.IsValid(targetToList))
             {
-                return GetMessage(501, string.Format("\"{0}\" is not a valid directory name", sMessage));
+                return GetMessage(501, $"\"{sMessage}\" is not a valid directory name");
             }
 
             // specify the directory tag
@@ -35,7 +36,9 @@ namespace AzureFtpServer.FtpCommands
             bool targetIsDir = ConnectionObject.FileSystemObject.DirectoryExists(targetToList);
 
             if (!targetIsDir)
-                return GetMessage(550, string.Format("Directory \"{0}\" not exists", targetToList));
+            {
+                return GetMessage(550, $"Directory \"{targetToList}\" not exists");
+            }
 
             #region Generate response
 
@@ -44,7 +47,7 @@ namespace AzureFtpServer.FtpCommands
             string[] files = ConnectionObject.FileSystemObject.GetFiles(targetToList);
             string[] directories = ConnectionObject.FileSystemObject.GetDirectories(targetToList);
 
-            if (files != null)
+            if (files != null && files.Any())
             {
                 foreach (var file in files)
                 { 
@@ -56,7 +59,7 @@ namespace AzureFtpServer.FtpCommands
                 }
             }
 
-            if (directories != null)
+            if (directories != null && directories.Any())
             {
                 foreach (var dir in directories)
                 {
@@ -79,11 +82,17 @@ namespace AzureFtpServer.FtpCommands
                 return GetMessage(425, "Unable to establish the data connection");
             }
 
-            SocketHelpers.Send(ConnectionObject.Socket, "150 Opening data connection for MLSD\r\n", ConnectionObject.Encoding);
+            SocketHelpers.Send(ConnectionObject.Socket, $"150 {ConnectionObject.DataType} Opening data connection for MLSD {targetToList}\r\n", ConnectionObject.Encoding);
 
-            // ToDo, send response according to ConnectionObject.DataType, i.e., Ascii or Binary
-            socketData.Send(response.ToString(), Encoding.UTF8);
-            socketData.Close();
+            try
+            {
+                // ToDo, send response according to ConnectionObject.DataType, i.e., Ascii or Binary
+                socketData.Send(response.ToString(), ConnectionObject.Encoding);
+            }
+            finally
+            {
+                socketData.Close();
+            }
 
             #endregion
 
