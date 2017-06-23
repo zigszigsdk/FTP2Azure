@@ -20,7 +20,7 @@ namespace AzureFtpServer.FtpCommands
 
             if (!ConnectionObject.FileSystemObject.FileExists(sPath))
             {
-                return GetMessage(550, string.Format("File doesn't exist ({0})", sPath));
+                return GetMessage(550, $"File doesn't exist ({sPath})");
             }
 
             IFileInfo info = ConnectionObject.FileSystemObject.GetFileInfo(sPath);
@@ -30,7 +30,7 @@ namespace AzureFtpServer.FtpCommands
                 return GetMessage(550, "Error in getting file information");
             }
 
-            return GetMessage(213, info.GetModifiedTime().ToString());
+            return GetMessage(213, info.GetModifiedTime().ToUniversalTime().ToString("yyyyMMddHHmmss.fff"));
         }
     }
 }
