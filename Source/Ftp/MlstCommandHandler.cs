@@ -26,16 +26,18 @@ namespace AzureFtpServer.FtpCommands
             // checks the file/dir name
             if (!FileNameHelpers.IsValid(targetToList))
             {
-                return GetMessage(501, string.Format("\"{0}\" is not a valid file/directory name", sMessage));
+                return GetMessage(501, $"\"{sMessage}\" is not a valid file/directory name");
             }
 
             bool targetIsFile = ConnectionObject.FileSystemObject.FileExists(targetToList);
             bool targetIsDir = ConnectionObject.FileSystemObject.DirectoryExists(FileNameHelpers.AppendDirTag(targetToList));
 
             if (!targetIsFile && !targetIsDir)
-                return GetMessage(550, string.Format("\"{0}\" not exists", sMessage));
+            {
+                return GetMessage(550, $"\"{sMessage}\" not exists");
+            }
 
-            SocketHelpers.Send(ConnectionObject.Socket, string.Format("250- MLST {0}\r\n", targetToList), ConnectionObject.Encoding);
+            SocketHelpers.Send(ConnectionObject.Socket, $"250- MLST {targetToList}\r\n", ConnectionObject.Encoding);
 
             StringBuilder response = new StringBuilder();
 

@@ -10,8 +10,8 @@ namespace AzureFtpServer.Provider
         {
             return new BlobRequestOptions
             {
-                MaximumExecutionTime = TimeSpan.FromMinutes(10),
-                ServerTimeout = TimeSpan.FromMinutes(10),
+                MaximumExecutionTime = TimeSpan.FromMinutes(30),
+                ServerTimeout = TimeSpan.FromMinutes(30),
                 RetryPolicy = new LinearRetry(TimeSpan.FromSeconds(10), 3),
             };
         }
