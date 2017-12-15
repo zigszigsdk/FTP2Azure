@@ -113,7 +113,7 @@ Note that the username will be the name of the blob storage container.
 
 ## Improvement ideas
 - keep the decoding logic solely inside of FtpSocketHandler and only pass FtpConnectionObject the full string message once an end-of-line is reached.
-- add support for FTPS (TLS)
+- add support for SFTP (TSL)
 
 ## Credits
  - Mohammed Habeeb for the original version of [C# FTP Server](http://www.codeguru.com/csharp/csharp/cs_internet/desktopapplications/article.php/c13163/Simple-FTP-Demo-Application-Using-CNET-20.htm)
