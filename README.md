@@ -66,7 +66,7 @@ Make an azure worker, and add the content of the source folder. The following bo
 ```
 
 ### Implementation own an Account Manager
-For use own an Account Manager you should implement interface IAccountManager and pass him into FtpServer constructor as a parameter.
+For use of own Account Manager you should implement interface IAccountManager and pass it into FtpServer constructor as a parameter.
 ```c#
     class AcccountManager : IAccountManager
     {
@@ -113,7 +113,7 @@ Note that the username will be the name of the blob storage container.
 
 ## Improvement ideas
 - keep the decoding logic solely inside of FtpSocketHandler and only pass FtpConnectionObject the full string message once an end-of-line is reached.
-
+- add support for FTPS (TLS)
 
 ## Credits
  - Mohammed Habeeb for the original version of [C# FTP Server](http://www.codeguru.com/csharp/csharp/cs_internet/desktopapplications/article.php/c13163/Simple-FTP-Demo-Application-Using-CNET-20.htm)
