@@ -3,7 +3,7 @@ This project has been abandoned. Want to give it a new home? Just clone it and g
 FTP2Azure
 =========
 
-FTP for Azure worker. Stores FTP files on the blob store. Works with .NET Standard 4.5
+FTP for Azure worker. Stores FTP files on the blob store. Works with .NET Framework 4.5
 
 ## Quickguide
 
